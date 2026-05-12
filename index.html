@@ -608,11 +608,11 @@ async function loadItems() {
   try {
     const items = await call(api() + '?action=getItems');
     if (items.error) throw new Error(items.error);
+    choices.clearChoices();
     if (!Array.isArray(items) || !items.length) {
-      setConn('err', 'Sheet "persiapan" kosong');
+      setConn('ok', 'Terhubung — isi data di sheet "persiapan"');
       return;
     }
-    choices.clearChoices();
     choices.setChoices(
       items.map(i => ({ value: i.id, label: `${i.id} — ${i.nama}` })),
       'value', 'label', true
