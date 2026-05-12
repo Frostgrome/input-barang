@@ -184,7 +184,8 @@
   let countdownVal = 30;
   let countdownTimer;
 
-  function getApiUrl() { return localStorage.getItem('apiUrl') || ''; }
+  const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbym4yUrlggMg35bEVqvueNK3mk-q-d6wB0PeYjKqkC7p_8MziIc8KPMatR1TExrPkdBIQ/exec';
+  function getApiUrl() { return localStorage.getItem('apiUrl') || DEFAULT_API; }
 
   // ── Load data dari Apps Script ───────────────────────────
   async function loadData() {

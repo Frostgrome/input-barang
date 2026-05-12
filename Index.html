@@ -156,7 +156,8 @@
   let stokCache = {};   // { idBarang: liveStok }
 
   // ── API URL (localStorage) ───────────────────────────────
-  function getApiUrl() { return localStorage.getItem('apiUrl') || ''; }
+  const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbym4yUrlggMg35bEVqvueNK3mk-q-d6wB0PeYjKqkC7p_8MziIc8KPMatR1TExrPkdBIQ/exec';
+  function getApiUrl() { return localStorage.getItem('apiUrl') || DEFAULT_API; }
 
   function showSettings() {
     document.getElementById('apiInput').value = getApiUrl();
@@ -189,11 +190,7 @@
 
     el.addEventListener('change', updateStokPill);
 
-    if (!getApiUrl()) {
-      showSettings();
-    } else {
-      loadItems();
-    }
+    loadItems();
   };
 
   // ── Load barang dari sheet "persiapan" ───────────────────
