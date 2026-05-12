@@ -19,6 +19,7 @@ function doGet(e) {
     else if (action === 'getTransaksi')  result = getTransaksi(parseInt(e.parameter.limit) || 500);
     else if (action === 'getStok')       result = getStok();
     else if (action === 'setup')         result = setupSheets();
+    else if (action === 'debug')         result = debugSheet();
     else                                 result = { error: 'Unknown action: ' + action };
   } catch (err) {
     result = { error: err.message };
@@ -174,6 +175,31 @@ function getStok() {
   });
 
   return Object.entries(stokMap).map(([id, stok]) => ({ id, stok }));
+}
+
+// =============================================
+// DEBUG: Lihat isi raw 10 baris pertama sheet persiapan
+// =============================================
+function debugSheet() {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_PERSIAPAN);
+  if (!sheet) return { error: 'Sheet tidak ditemukan', name: SHEET_PERSIAPAN };
+
+  const lastRow = Math.min(sheet.getLastRow(), 15);
+  if (lastRow < 1) return { lastRow: 0, rows: [] };
+
+  const values = sheet.getRange(1, 1, lastRow, 4).getValues();
+  return {
+    sheetName: sheet.getName(),
+    lastRow: sheet.getLastRow(),
+    rows: values.map((r, i) => ({
+      row: i + 1,
+      A: String(r[0]),
+      B: String(r[1]),
+      C: String(r[2]),
+      D: String(r[3])
+    }))
+  };
 }
 
 // =============================================
