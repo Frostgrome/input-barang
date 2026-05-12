@@ -7,360 +7,435 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f0f4f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    :root {
+      --sidebar-w: 240px;
+      --navy: #1a2744;
+      --navy2: #0f1a33;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
-    /* ── SIDEBAR ─────────────────────────────── */
+    /* ════ SIDEBAR ════ */
     .sidebar {
-      position: fixed; left: 0; top: 0;
-      width: 220px; height: 100vh;
-      background: linear-gradient(180deg, #1e3a5f 0%, #112240 100%);
-      color: white; display: flex; flex-direction: column;
+      position: fixed; left: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, var(--navy) 0%, var(--navy2) 100%);
+      display: flex; flex-direction: column;
       z-index: 100; overflow-y: auto;
     }
-    .sidebar-brand {
-      padding: 22px 18px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+    .sb-brand {
+      padding: 24px 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .sidebar-brand h2 { font-size: 1rem; font-weight: 700; color: white; margin: 0; }
-    .sidebar-brand small { font-size: .7rem; color: rgba(255,255,255,.45); display: block; margin-top: 4px; }
-    .sidebar-nav { padding: 14px 10px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 8px;
-      color: rgba(255,255,255,.65); font-size: .88rem;
-      cursor: pointer; transition: all .15s; user-select: none;
+    .sb-brand h1 { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .sb-brand small { font-size: .72rem; color: rgba(255,255,255,.4); margin-top: 4px; display: block; }
+    .sb-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .sb-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 14px; border-radius: 10px;
+      color: rgba(255,255,255,.6); font-size: .9rem;
+      cursor: pointer; transition: all .15s; user-select: none; border: none; background: none; width: 100%; text-align: left;
     }
-    .nav-item:hover  { background: rgba(255,255,255,.1); color: white; }
-    .nav-item.active { background: rgba(255,255,255,.18); color: white; font-weight: 600; }
-    .nav-item .ni    { font-size: 1rem; width: 20px; text-align: center; }
-    .nav-setup { margin-top: auto !important; border-top: 1px solid rgba(255,255,255,.1); padding-top: 10px; }
+    .sb-item:hover  { background: rgba(255,255,255,.09); color: #fff; }
+    .sb-item.active { background: var(--accent); color: #fff; font-weight: 600; box-shadow: 0 2px 10px rgba(59,130,246,.35); }
+    .sb-item .ic    { font-size: 1.1rem; width: 22px; text-align: center; flex-shrink: 0; }
+    .sb-divider     { margin: 8px 0; border-top: 1px solid rgba(255,255,255,.07); }
+    .sb-footer      { padding: 12px; }
 
-    /* ── MAIN ────────────────────────────────── */
-    .main { margin-left: 220px; min-height: 100vh; padding: 22px; }
+    /* ════ MAIN ════ */
+    .main { margin-left: var(--sidebar-w); min-height: 100vh; }
 
-    /* ── SECTIONS ────────────────────────────── */
+    /* ════ TOPBAR ════ */
+    .topbar {
+      background: white; border-bottom: 1px solid #e8ecf0;
+      padding: 0 28px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
+    .topbar-right  { display: flex; align-items: center; gap: 10px; }
+    .conn-dot {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .78rem; padding: 4px 12px; border-radius: 20px;
+      font-weight: 500;
+    }
+    .conn-dot.ok     { background: #f0fdf4; color: #166534; }
+    .conn-dot.err    { background: #fef2f2; color: #991b1b; }
+    .conn-dot.loading{ background: #eff6ff; color: #1d4ed8; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-ok  { background: #22c55e; animation: pls 1.5s infinite; }
+    .dot-err { background: #ef4444; }
+    .dot-ld  { background: #3b82f6; animation: pls .8s infinite; }
+    @keyframes pls {
+      0%,100%{ opacity:1 } 50%{ opacity:.3 }
+    }
+
+    /* ════ CONTENT AREA ════ */
+    .content { padding: 28px; }
     .sec { display: none; }
     .sec.active { display: block; }
 
-    /* ── PAGE HEADER ─────────────────────────── */
-    .page-hdr { margin-bottom: 18px; }
-    .page-hdr h2 { font-size: 1.3rem; font-weight: 700; color: #1a2a4a; margin: 0; }
-    .page-hdr p  { font-size: .8rem; color: #999; margin: 4px 0 0; }
+    /* ════ PAGE HEADER ════ */
+    .pg-hdr { margin-bottom: 24px; }
+    .pg-hdr h2 { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+    .pg-hdr p  { font-size: .85rem; color: #94a3b8; margin-top: 4px; }
 
-    /* ── CARDS ───────────────────────────────── */
-    .card-box {
-      background: white; border-radius: 14px;
-      padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    /* ════ INPUT FORM ════ */
+    .form-wrap {
+      max-width: 740px;
+      margin: 0 auto;
     }
-    .card-box.narrow { max-width: 520px; margin: 0 auto; }
-
-    /* ── Center input section ────────────────── */
-    #sec-input { display: flex; flex-direction: column; align-items: center; }
-    #sec-input .page-hdr,
-    #sec-input #inputStatus { width: 100%; max-width: 520px; }
-
-    /* ── CHOICES ─────────────────────────────── */
-    .choices__inner { background: white !important; border-radius: 4px !important; min-height: 40px !important; }
-
-    /* ── STOK PILL ───────────────────────────── */
-    .stok-pill {
-      display: inline-block; border-radius: 20px; padding: 4px 14px;
-      font-weight: 700; font-size: .8rem; margin-top: 6px;
-      background: #ebfffc; color: #257953; border: 1px solid #48c774;
+    .form-card {
+      background: white; border-radius: 16px;
+      padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 20px rgba(0,0,0,.05);
     }
-    .req  { color: #ff3860; }
-    .hint { font-weight: 400; color: #aaa; font-size: .78rem; margin-left: 4px; }
-
-    /* ── SUMMARY CARDS ───────────────────────── */
-    .sum-row  { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .sum-card {
-      flex: 1; min-width: 110px; background: white;
-      border-radius: 12px; padding: 11px 14px; text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
     }
-    .sum-card .val { font-size: 1.45rem; font-weight: 700; }
-    .sum-card .lbl { font-size: .7rem; color: #999; margin-top: 2px; }
-
-    /* ── TABLE CARD ──────────────────────────── */
-    .tbl-card {
-      background: white; border-radius: 14px;
-      padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.07);
-      overflow-x: auto;
+    .form-grid .full { grid-column: 1 / -1; }
+    .field-label {
+      font-size: .82rem; font-weight: 600; color: #374151;
+      margin-bottom: 6px; display: flex; align-items: center; gap: 5px;
     }
-    table { font-size: .82rem; white-space: nowrap; }
-    tr:hover { background: #f9fafb !important; }
-    .empty-td { text-align: center; color: #bbb; padding: 36px !important; }
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-
-    /* ── BADGES ──────────────────────────────── */
-    .bdg {
-      display: inline-block; padding: 2px 10px;
-      border-radius: 20px; font-weight: 700; font-size: .74rem; letter-spacing: .3px;
+    .req  { color: #ef4444; }
+    .hint { font-weight: 400; color: #9ca3af; font-size: .76rem; }
+    .field-input {
+      width: 100%; padding: 10px 14px; font-size: .92rem;
+      border: 1.5px solid #e2e8f0; border-radius: 8px;
+      transition: border-color .15s; outline: none; background: white;
     }
-    .bdg-masuk  { background: #effaf5; color: #257953; border: 1px solid #23d160; }
-    .bdg-keluar { background: #fff5f7; color: #cc0f35; border: 1px solid #ff3860; }
-    .bdg-aman   { background: #effaf5; color: #257953; border: 1px solid #23d160; }
-    .bdg-kritis { background: #fffaeb; color: #947600; border: 1px solid #ffe08a; }
-    .bdg-habis  { background: #fff5f7; color: #cc0f35; border: 1px solid #ff3860; }
-
-    /* ── COLORS ──────────────────────────────── */
-    .c-in   { color: #23d160; }
-    .c-out  { color: #ff3860; }
-    .c-aman { color: #257953; }
-    .c-kri  { color: #947600; }
-    .c-hab  { color: #cc0f35; }
-    .fw7    { font-weight: 700; }
-    .row-kritis { background: #fffaeb !important; }
-    .row-habis  { background: #fff5f7 !important; }
-
-    /* ── STOK BAR ────────────────────────────── */
-    .sbar-wrap { background: #eee; border-radius: 20px; height: 8px; width: 100px; overflow: hidden; display: inline-block; vertical-align: middle; }
-    .sbar      { height: 100%; border-radius: 20px; transition: width .3s; }
-    .sbar-aman   { background: #23d160; }
-    .sbar-kritis { background: #ffdd57; }
-    .sbar-habis  { background: #ff3860; }
-
-    /* ── SYNC STATUS ─────────────────────────── */
-    .sync-txt { font-size: .82rem; color: #888; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-    .sync-txt .cdown { color: #bbb; font-size: .74rem; }
-    .pulse {
-      display: inline-block; width: 8px; height: 8px;
-      background: #23d160; border-radius: 50%; animation: pls 1.5s infinite;
+    .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+    select.field-input { cursor: pointer; }
+    textarea.field-input { resize: vertical; min-height: 80px; font-family: inherit; }
+    .choices .choices__inner {
+      border: 1.5px solid #e2e8f0 !important; border-radius: 8px !important;
+      background: white !important; min-height: 44px !important;
+      padding: 6px 10px !important; font-size: .92rem !important;
     }
-    @keyframes pls {
-      0%   { box-shadow: 0 0 0 0 rgba(35,209,96,.6); }
-      70%  { box-shadow: 0 0 0 7px rgba(35,209,96,0); }
-      100% { box-shadow: 0 0 0 0 rgba(35,209,96,0); }
-    }
+    .choices.is-focused .choices__inner { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(59,130,246,.12) !important; }
 
-    /* ── TOAST ───────────────────────────────── */
+    /* stok pill */
+    .stok-info {
+      margin-top: 8px; padding: 8px 14px; border-radius: 8px;
+      font-size: .82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .stok-ok  { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+    .stok-kri { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+    .stok-hab { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    /* submit btn */
+    .btn-submit {
+      width: 100%; padding: 13px; font-size: 1rem; font-weight: 600;
+      background: var(--accent); color: white; border: none;
+      border-radius: 10px; cursor: pointer;
+      transition: background .15s, transform .1s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover   { background: #2563eb; }
+    .btn-submit:active  { transform: scale(.98); }
+    .btn-submit:disabled{ background: #93c5fd; cursor: default; }
+    .btn-submit.loading { opacity: .7; cursor: default; }
+
+    /* ════ SUMMARY CARDS ════ */
+    .sum-row  { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .sum-card { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .sum-card .val { font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
+    .sum-card .lbl { font-size: .73rem; color: #94a3b8; margin-top: 4px; }
+
+    /* ════ TABLE CARD ════ */
+    .tbl-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow-x: auto; }
+    table { font-size: .84rem; width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 12px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; border-bottom: 2px solid #f1f5f9; white-space: nowrap; }
+    td { padding: 11px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+    .empty-td { text-align: center; color: #cbd5e1; padding: 48px !important; font-size: .9rem; }
+
+    /* filter row */
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .filter-row input, .filter-row select {
+      padding: 7px 12px; font-size: .84rem;
+      border: 1.5px solid #e2e8f0; border-radius: 8px; outline: none;
+    }
+    .filter-row input:focus, .filter-row select:focus { border-color: var(--accent); }
+    .filter-row input[type="text"] { min-width: 200px; }
+    .btn-sm {
+      padding: 7px 14px; font-size: .82rem; border-radius: 8px;
+      border: 1.5px solid #e2e8f0; background: white; cursor: pointer; color: #64748b;
+      transition: all .15s;
+    }
+    .btn-sm:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-sm.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-sm.primary:hover { background: #2563eb; }
+
+    /* ════ BADGES ════ */
+    .bdg { display: inline-block; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: .74rem; }
+    .bdg-masuk  { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+    .bdg-keluar { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    .bdg-aman   { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+    .bdg-kritis { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+    .bdg-habis  { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    .fw7 { font-weight: 700; }
+    .c-in  { color: #16a34a; }
+    .c-out { color: #dc2626; }
+    .c-aman{ color: #166534; }
+    .c-kri { color: #92400e; }
+    .c-hab { color: #991b1b; }
+    .row-kritis td { background: #fffbeb !important; }
+    .row-habis  td { background: #fef2f2 !important; }
+
+    /* stok bar */
+    .sbar-wrap { background: #f1f5f9; border-radius: 20px; height: 6px; width: 90px; overflow: hidden; display: inline-block; vertical-align: middle; }
+    .sbar      { height: 100%; border-radius: 20px; }
+    .sbar-aman  { background: #22c55e; }
+    .sbar-kritis{ background: #f59e0b; }
+    .sbar-habis { background: #ef4444; }
+
+    /* ════ TOAST ════ */
     .toast {
-      position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
-      background: #23d160; color: white; padding: 11px 22px;
-      border-radius: 8px; font-weight: 600; z-index: 9999;
-      display: none; box-shadow: 0 4px 16px rgba(0,0,0,.22);
-      text-align: center; max-width: 90vw; font-size: .9rem;
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: .9rem;
+      z-index: 9999; display: none; box-shadow: 0 4px 20px rgba(0,0,0,.18);
+      text-align: center; max-width: 92vw; color: white;
     }
-    .toast.err { background: #ff3860; }
+    .toast.ok  { background: #16a34a; }
+    .toast.err { background: #dc2626; }
 
-    /* ── BOTTOM NAV (mobile) ─────────────────── */
+    /* ════ BOTTOM NAV (mobile) ════ */
     .bnav {
       display: none; position: fixed; bottom: 0; left: 0; right: 0;
-      height: 58px; background: white;
-      box-shadow: 0 -2px 12px rgba(0,0,0,.1); z-index: 200;
+      height: 60px; background: white; box-shadow: 0 -1px 0 #e2e8f0;
+      z-index: 200;
     }
     .bnav-inner { display: flex; height: 100%; }
     .bnav-item {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      font-size: .65rem; color: #bbb; cursor: pointer;
-      gap: 2px; transition: color .15s; user-select: none;
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; font-size: .64rem; color: #94a3b8;
+      cursor: pointer; gap: 3px; user-select: none; transition: color .15s;
     }
-    .bnav-item .ico  { font-size: 1.25rem; }
-    .bnav-item.active { color: #3273dc; font-weight: 600; }
+    .bnav-item .ico  { font-size: 1.3rem; }
+    .bnav-item.active { color: var(--accent); font-weight: 700; }
 
-    /* ── RESPONSIVE ──────────────────────────── */
+    /* ════ SYNC BAR ════ */
+    .sync-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .sync-txt { font-size: .82rem; color: #64748b; }
+    .cdown    { font-size: .76rem; color: #94a3b8; }
+
+    /* ════ RESPONSIVE ════ */
+    @media (max-width: 900px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+    }
     @media (max-width: 768px) {
       .sidebar { display: none; }
-      .main { margin-left: 0; padding: 12px; padding-bottom: 72px; }
+      .main { margin-left: 0; }
+      .content { padding: 14px; padding-bottom: 74px; }
+      .topbar { padding: 0 14px; }
       .bnav { display: block; }
-      .toast { bottom: 68px; }
+      .toast { bottom: 72px; }
+      .form-card { padding: 20px; }
     }
+
+    /* ════ MODAL ════ */
+    .modal-card { max-width: 460px; margin: 0 16px; }
   </style>
 </head>
 <body>
 
-<!-- ═══════ SIDEBAR (desktop) ═══════ -->
+<!-- ══════════════ SIDEBAR ══════════════ -->
 <aside class="sidebar">
-  <div class="sidebar-brand">
-    <h2>📦 Inventory Barang</h2>
+  <div class="sb-brand">
+    <h1>📦 Inventory Barang</h1>
     <small id="sbStatus">Menghubungkan...</small>
   </div>
-  <nav class="sidebar-nav">
-    <div class="nav-item active" id="nav-input"   onclick="go('input')">
-      <span class="ni">📝</span> Input Transaksi
-    </div>
-    <div class="nav-item"        id="nav-riwayat" onclick="go('riwayat')">
-      <span class="ni">📋</span> Riwayat Transaksi
-    </div>
-    <div class="nav-item"        id="nav-stok"    onclick="go('stok')">
-      <span class="ni">📊</span> Live Stok
-    </div>
-    <div class="nav-item nav-setup" onclick="showSettings()">
-      <span class="ni">⚙️</span> Setup API
-    </div>
+  <nav class="sb-nav">
+    <button class="sb-item active" id="nav-input"   onclick="go('input')">
+      <span class="ic">📝</span> Input Transaksi
+    </button>
+    <button class="sb-item"        id="nav-riwayat" onclick="go('riwayat')">
+      <span class="ic">📋</span> Riwayat Transaksi
+    </button>
+    <button class="sb-item"        id="nav-stok"    onclick="go('stok')">
+      <span class="ic">📊</span> Live Stok
+    </button>
+    <div class="sb-divider"></div>
+    <button class="sb-item" onclick="showSettings()">
+      <span class="ic">⚙️</span> Setup API
+    </button>
   </nav>
 </aside>
 
-<!-- ═══════ MAIN ═══════ -->
-<main class="main">
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
 
-  <!-- ── Input Transaksi ── -->
-  <div class="sec active" id="sec-input">
-    <div class="page-hdr">
-      <h2>📝 Input Transaksi</h2>
-      <p>Catat barang masuk atau keluar ke spreadsheet</p>
-    </div>
-
-    <div id="inputStatus" class="notification is-light is-info py-2 px-3 mb-4"
-         style="font-size:.83rem;max-width:520px">
-      ⏳ Menghubungkan ke database...
-    </div>
-
-    <div class="card-box narrow">
-      <div class="field">
-        <label class="label">Jenis Transaksi</label>
-        <div class="select is-fullwidth">
-          <select id="jenis">
-            <option value="MASUK">📦 BARANG MASUK</option>
-            <option value="KELUAR">📤 BARANG KELUAR</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="label">Tanggal</label>
-        <input class="input" type="date" id="tanggal">
-      </div>
-
-      <div class="field">
-        <label class="label">Pilih Barang</label>
-        <select id="idBarang"></select>
-        <div id="stokWrap" style="display:none;margin-top:6px">
-          <span class="stok-pill" id="stokPill">Stok: —</span>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="label">QTY <span class="hint">(jumlah)</span></label>
-        <input class="input" type="number" id="qty" placeholder="0" min="1">
-      </div>
-
-      <div class="field">
-        <label class="label">
-          Keterangan <span class="req">*</span>
-          <span class="hint">wajib diisi</span>
-        </label>
-        <textarea class="textarea" id="keterangan" rows="2"
-                  placeholder="Isi keterangan transaksi..."></textarea>
-      </div>
-
-      <button class="button is-primary is-fullwidth mt-4"
-              id="btnSimpan" onclick="submitData()">
-        💾 Simpan Transaksi
-      </button>
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbarTitle">📝 Input Transaksi</span>
+    <div class="topbar-right">
+      <span class="conn-dot loading" id="connDot">
+        <span class="dot dot-ld"></span> Menghubungkan...
+      </span>
+      <button class="btn-sm" onclick="retryConnect()" id="btnRetry" style="display:none">🔄 Retry</button>
     </div>
   </div>
 
-  <!-- ── Riwayat Transaksi ── -->
-  <div class="sec" id="sec-riwayat">
-    <div class="page-hdr">
-      <h2>📋 Riwayat Transaksi</h2>
-      <div class="sync-txt">
-        <span class="pulse"></span>
-        <span id="rStatus">Memuat data...</span>
-        <span class="cdown" id="rCdown"></span>
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── Input Transaksi ── -->
+    <div class="sec active" id="sec-input">
+      <div class="pg-hdr">
+        <h2>📝 Input Transaksi</h2>
+        <p>Catat barang masuk atau keluar ke spreadsheet secara real-time</p>
       </div>
+
+      <div class="form-wrap">
+        <div class="form-card">
+          <div class="form-grid">
+
+            <!-- Jenis -->
+            <div>
+              <div class="field-label">Jenis Transaksi</div>
+              <select class="field-input" id="jenis">
+                <option value="MASUK">📦 BARANG MASUK</option>
+                <option value="KELUAR">📤 BARANG KELUAR</option>
+              </select>
+            </div>
+
+            <!-- Tanggal -->
+            <div>
+              <div class="field-label">Tanggal</div>
+              <input class="field-input" type="date" id="tanggal">
+            </div>
+
+            <!-- Pilih Barang (full width) -->
+            <div class="full">
+              <div class="field-label">Pilih Barang <span class="hint">(ID / Nama)</span></div>
+              <select id="idBarang"></select>
+              <div id="stokWrap" style="display:none">
+                <div class="stok-info stok-ok" id="stokPill">Stok: —</div>
+              </div>
+            </div>
+
+            <!-- QTY -->
+            <div>
+              <div class="field-label">QTY <span class="hint">(jumlah)</span></div>
+              <input class="field-input" type="number" id="qty" placeholder="0" min="1">
+            </div>
+
+            <!-- Keterangan -->
+            <div>
+              <div class="field-label">Keterangan <span class="req">*</span> <span class="hint">wajib</span></div>
+              <textarea class="field-input" id="keterangan" rows="3"
+                        placeholder="Isi keterangan transaksi..."></textarea>
+            </div>
+
+          </div><!-- /form-grid -->
+
+          <button class="btn-submit" id="btnSimpan" onclick="submitData()">
+            💾 Simpan Transaksi
+          </button>
+        </div><!-- /form-card -->
+      </div><!-- /form-wrap -->
     </div>
 
-    <div class="sum-row">
-      <div class="sum-card"><div class="val"      id="rTotal">—</div><div class="lbl">Total Transaksi</div></div>
-      <div class="sum-card"><div class="val c-in" id="rMasuk">—</div><div class="lbl">Barang Masuk</div></div>
-      <div class="sum-card"><div class="val c-out"id="rKeluar">—</div><div class="lbl">Barang Keluar</div></div>
-      <div class="sum-card"><div class="val c-in" id="rQtyIn">—</div><div class="lbl">Total Qty IN</div></div>
-      <div class="sum-card"><div class="val c-out"id="rQtyOut">—</div><div class="lbl">Total Qty OUT</div></div>
-    </div>
+    <!-- ── Riwayat Transaksi ── -->
+    <div class="sec" id="sec-riwayat">
+      <div class="pg-hdr">
+        <h2>📋 Riwayat Transaksi</h2>
+      </div>
 
-    <div class="tbl-card">
-      <div class="filter-row">
-        <input class="input is-small" type="text" id="rFBarang"
-               placeholder="🔍 Cari ID Barang..." style="max-width:200px" oninput="renderR()">
-        <div class="select is-small">
+      <div class="sync-row">
+        <span id="rStatus" class="sync-txt">Memuat data...</span>
+        <span id="rCdown" class="cdown"></span>
+        <button class="btn-sm" onclick="loadR()" style="margin-left:auto">🔄 Refresh</button>
+      </div>
+
+      <div class="sum-row">
+        <div class="sum-card"><div class="val"      id="rTotal">—</div><div class="lbl">Total Transaksi</div></div>
+        <div class="sum-card"><div class="val c-in" id="rMasuk">—</div><div class="lbl">Barang Masuk</div></div>
+        <div class="sum-card"><div class="val c-out"id="rKeluar">—</div><div class="lbl">Barang Keluar</div></div>
+        <div class="sum-card"><div class="val c-in" id="rQtyIn">—</div><div class="lbl">Total Qty IN</div></div>
+        <div class="sum-card"><div class="val c-out"id="rQtyOut">—</div><div class="lbl">Total Qty OUT</div></div>
+      </div>
+
+      <div class="tbl-card">
+        <div class="filter-row">
+          <input type="text"  id="rFBarang"  placeholder="🔍 Cari ID Barang..." oninput="renderR()">
           <select id="rFJenis" onchange="renderR()">
             <option value="">Semua Jenis</option>
             <option value="MASUK">MASUK</option>
             <option value="KELUAR">KELUAR</option>
           </select>
+          <input type="date" id="rFTgl" onchange="renderR()">
+          <button class="btn-sm" onclick="clearRF()">✕ Reset</button>
+          <span style="margin-left:auto;font-size:.78rem;color:#94a3b8" id="rCount"></span>
         </div>
-        <input class="input is-small" type="date" id="rFTgl"
-               style="max-width:160px" onchange="renderR()">
-        <button class="button is-light is-small" onclick="clearRFilter()">✕ Reset</button>
-        <span style="margin-left:auto;font-size:.78rem;color:#aaa" id="rCount"></span>
-        <button class="button is-light is-small" onclick="loadR()">🔄</button>
-      </div>
-      <table class="table is-fullwidth is-hoverable">
-        <thead>
-          <tr>
-            <th style="width:40px">NO</th>
-            <th>JENIS</th>
-            <th>TANGGAL</th>
-            <th>ID BARANG</th>
-            <th style="min-width:150px">KETERANGAN</th>
-            <th>QTY</th>
-            <th class="c-in">IN</th>
-            <th class="c-out">OUT</th>
-            <th>LIVE STOK</th>
-          </tr>
-        </thead>
-        <tbody id="rBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ── Live Stok ── -->
-  <div class="sec" id="sec-stok">
-    <div class="page-hdr">
-      <h2>📊 Live Stok Barang</h2>
-      <div class="sync-txt">
-        <span class="pulse"></span>
-        <span id="sStatus">Memuat data...</span>
-        <span class="cdown" id="sCdown"></span>
+        <table>
+          <thead>
+            <tr>
+              <th>NO</th><th>JENIS</th><th>TANGGAL</th><th>ID BARANG</th>
+              <th>KETERANGAN</th><th>QTY</th>
+              <th style="color:#16a34a">IN</th>
+              <th style="color:#dc2626">OUT</th>
+              <th>LIVE STOK</th>
+            </tr>
+          </thead>
+          <tbody id="rBody"></tbody>
+        </table>
       </div>
     </div>
 
-    <div class="sum-row">
-      <div class="sum-card"><div class="val"       id="sTotal">—</div><div class="lbl">Total Jenis Barang</div></div>
-      <div class="sum-card"><div class="val c-aman" id="sAman">—</div><div class="lbl">Stok Aman (≥5)</div></div>
-      <div class="sum-card"><div class="val c-kri"  id="sKri">—</div><div class="lbl">Stok Kritis (1–4)</div></div>
-      <div class="sum-card"><div class="val c-hab"  id="sHab">—</div><div class="lbl">Stok Habis (0)</div></div>
-    </div>
+    <!-- ── Live Stok ── -->
+    <div class="sec" id="sec-stok">
+      <div class="pg-hdr">
+        <h2>📊 Live Stok Barang</h2>
+      </div>
 
-    <div class="tbl-card">
-      <div class="filter-row">
-        <input class="input is-small" type="text" id="sFCari"
-               placeholder="🔍 Cari barang..." style="max-width:220px" oninput="renderS()">
-        <div class="select is-small">
+      <div class="sync-row">
+        <span id="sStatus" class="sync-txt">Memuat data...</span>
+        <span id="sCdown" class="cdown"></span>
+        <button class="btn-sm" onclick="loadS()" style="margin-left:auto">🔄 Refresh</button>
+      </div>
+
+      <div class="sum-row">
+        <div class="sum-card"><div class="val"       id="sTotal">—</div><div class="lbl">Total Jenis Barang</div></div>
+        <div class="sum-card"><div class="val c-aman" id="sAman">—</div><div class="lbl">Stok Aman (≥5)</div></div>
+        <div class="sum-card"><div class="val c-kri"  id="sKri">—</div><div class="lbl">Stok Kritis (1–4)</div></div>
+        <div class="sum-card"><div class="val c-hab"  id="sHab">—</div><div class="lbl">Stok Habis (0)</div></div>
+      </div>
+
+      <div class="tbl-card">
+        <div class="filter-row">
+          <input type="text" id="sFCari" placeholder="🔍 Cari barang..." oninput="renderS()">
           <select id="sFSt" onchange="renderS()">
             <option value="">Semua Status</option>
             <option value="habis">Habis (0)</option>
             <option value="kritis">Kritis (1–4)</option>
             <option value="aman">Aman (≥5)</option>
           </select>
+          <button class="btn-sm" onclick="clearSF()">✕ Reset</button>
+          <span style="margin-left:auto;font-size:.78rem;color:#94a3b8" id="sCount"></span>
         </div>
-        <button class="button is-light is-small" onclick="clearSFilter()">✕ Reset</button>
-        <span style="margin-left:auto;font-size:.78rem;color:#aaa" id="sCount"></span>
-        <button class="button is-light is-small" onclick="loadS()">🔄</button>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>ID BARANG</th><th>NAMA BARANG</th>
+              <th>LIVE STOK</th><th>BAR</th><th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="sBody"></tbody>
+        </table>
       </div>
-      <table class="table is-fullwidth is-hoverable">
-        <thead>
-          <tr>
-            <th style="width:36px">#</th>
-            <th>ID BARANG</th>
-            <th>NAMA BARANG</th>
-            <th>LIVE STOK</th>
-            <th>BAR</th>
-            <th>STATUS</th>
-          </tr>
-        </thead>
-        <tbody id="sBody"></tbody>
-      </table>
     </div>
-  </div>
 
-</main>
+  </div><!-- /content -->
+</div><!-- /main -->
 
-<!-- ═══════ BOTTOM NAV (mobile) ═══════ -->
+<!-- ══════════════ BOTTOM NAV ══════════════ -->
 <nav class="bnav">
   <div class="bnav-inner">
     <div class="bnav-item active" id="bnav-input"   onclick="go('input')">
@@ -375,21 +450,21 @@
   </div>
 </nav>
 
-<!-- ═══════ MODAL SETUP ═══════ -->
+<!-- ══════════════ MODAL SETUP ══════════════ -->
 <div id="modalSetup" class="modal">
   <div class="modal-background" onclick="closeSettings()"></div>
-  <div class="modal-card" style="max-width:460px;margin:0 16px">
+  <div class="modal-card">
     <header class="modal-card-head">
       <p class="modal-card-title" style="font-size:1rem">⚙️ Setup URL Apps Script</p>
       <button class="delete" onclick="closeSettings()"></button>
     </header>
     <section class="modal-card-body">
       <p class="mb-3" style="font-size:.88rem">
-        URL Web App Apps Script (opsional — sudah ada URL default bawaan).<br>
-        Kosongkan dan klik Reset untuk kembali ke URL default.
+        URL ini sudah diset secara default. Gunakan field ini hanya jika ingin mengganti URL.
       </p>
       <input class="input" type="url" id="apiInput"
              placeholder="https://script.google.com/macros/s/.../exec">
+      <p class="mt-2" style="font-size:.76rem;color:#94a3b8">Kosongkan lalu klik Reset untuk kembali ke URL default.</p>
     </section>
     <footer class="modal-card-foot" style="gap:8px">
       <button class="button is-primary"          onclick="saveSettings()">Simpan & Reload</button>
@@ -403,27 +478,50 @@
 
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script>
-// ── CONFIG ────────────────────────────────────────────────
+// ════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbym4yUrlggMg35bEVqvueNK3mk-q-d6wB0PeYjKqkC7p_8MziIc8KPMatR1TExrPkdBIQ/exec';
 const api = () => localStorage.getItem('apiUrl') || DEFAULT_API;
 
-// ── JSONP (no CORS issue) ─────────────────────────────────
-function call(url, timeout = 12000) {
-  return new Promise((res, rej) => {
-    const name = '_cb' + Date.now() + Math.random().toString(36).slice(2);
-    const s = document.createElement('script');
-    s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + name;
-    const t = setTimeout(() => { clean(); rej(new Error('Timeout')); }, timeout);
-    s.onerror = () => { clean(); rej(new Error('Script load error')); };
-    window[name] = d => { clean(); res(d); };
-    function clean() { clearTimeout(t); delete window[name]; s.parentNode?.removeChild(s); }
-    document.head.appendChild(s);
+// ════════════════════════════════════
+//  API CALL — JSONP (no CORS issue)
+// ════════════════════════════════════
+function call(url, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_cb' + Date.now() + Math.random().toString(36).slice(2, 7);
+    const script = document.createElement('script');
+    const sep    = url.includes('?') ? '&' : '?';
+    script.src   = `${url}${sep}callback=${cbName}`;
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Timeout — Apps Script tidak merespons dalam 15 detik. Pastikan sudah di-redeploy dengan versi terbaru.'));
+    }, timeoutMs);
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Gagal memuat script. Periksa koneksi internet.'));
+    };
+
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    document.head.appendChild(script);
   });
 }
 
-// ── NAVIGATION ────────────────────────────────────────────
+// ════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════
 let activeTab = 'input';
-const loaded = { riwayat: false, stok: false };
+const loaded  = { riwayat: false, stok: false };
+const titles  = { input: '📝 Input Transaksi', riwayat: '📋 Riwayat Transaksi', stok: '📊 Live Stok' };
 
 function go(tab) {
   document.querySelectorAll('.sec').forEach(e => e.classList.remove('active'));
@@ -432,12 +530,15 @@ function go(tab) {
   document.getElementById('sec-'  + tab).classList.add('active');
   document.getElementById('nav-'  + tab)?.classList.add('active');
   document.getElementById('bnav-' + tab)?.classList.add('active');
+  document.getElementById('topbarTitle').textContent = titles[tab];
   activeTab = tab;
   if (tab === 'riwayat' && !loaded.riwayat) loadR();
   if (tab === 'stok'    && !loaded.stok)    loadS();
 }
 
-// ── SETTINGS ─────────────────────────────────────────────
+// ════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════
 function showSettings() {
   document.getElementById('apiInput').value = localStorage.getItem('apiUrl') || '';
   document.getElementById('modalSetup').classList.add('is-active');
@@ -452,6 +553,27 @@ function saveSettings() {
 function resetSettings() { localStorage.removeItem('apiUrl'); location.reload(); }
 
 // ════════════════════════════════════
+//  CONNECTION STATUS
+// ════════════════════════════════════
+function setConn(state, msg) {
+  const dot  = document.getElementById('connDot');
+  const sb   = document.getElementById('sbStatus');
+  const btn  = document.getElementById('btnRetry');
+  const map  = {
+    ok:      ['ok',      'dot-ok',  msg || 'Terhubung'],
+    err:     ['err',     'dot-err', msg || 'Gagal terhubung'],
+    loading: ['loading', 'dot-ld',  msg || 'Menghubungkan...'],
+  };
+  const [cls, dcls, label] = map[state];
+  dot.className = `conn-dot ${cls}`;
+  dot.innerHTML = `<span class="dot ${dcls}"></span> ${label}`;
+  sb.textContent = label;
+  btn.style.display = state === 'err' ? 'inline-flex' : 'none';
+}
+
+function retryConnect() { loadItems(); }
+
+// ════════════════════════════════════
 //  INPUT TRANSAKSI
 // ════════════════════════════════════
 let choices;
@@ -459,11 +581,12 @@ let stokCache = {};
 
 function initInput() {
   document.getElementById('tanggal').valueAsDate = new Date();
+
   const el = document.getElementById('idBarang');
   choices = new Choices(el, {
     searchEnabled: true, placeholder: true,
     placeholderValue: 'Ketik ID atau nama barang...',
-    itemSelectText: '', noResultsText: 'Tidak ditemukan',
+    itemSelectText: '', noResultsText: 'Barang tidak ditemukan',
     noChoicesText: 'Memuat daftar barang...',
   });
   el.addEventListener('change', refreshPill);
@@ -471,51 +594,54 @@ function initInput() {
 }
 
 async function loadItems() {
-  const bar = document.getElementById('inputStatus');
+  setConn('loading');
   try {
     const items = await call(api() + '?action=getItems');
     if (items.error) throw new Error(items.error);
     if (!Array.isArray(items) || !items.length) {
-      bar.className = 'notification is-warning py-2 px-3 mb-4';
-      bar.textContent = '⚠️ Sheet "persiapan" kosong — tambahkan ID BARANG & NAMA BARANG.';
+      setConn('err', 'Sheet "persiapan" kosong');
       return;
     }
-    choices.setChoices(items.map(i => ({ value: i.id, label: `${i.id} — ${i.nama}` })), 'value', 'label', true);
-    bar.className = 'notification is-success py-2 px-3 mb-4';
-    bar.textContent = `✅ Terhubung — ${items.length} barang dimuat`;
-    document.getElementById('sbStatus').textContent = items.length + ' barang';
+    choices.clearChoices();
+    choices.setChoices(
+      items.map(i => ({ value: i.id, label: `${i.id} — ${i.nama}` })),
+      'value', 'label', true
+    );
+    setConn('ok', `${items.length} barang dimuat`);
     loadStokCache();
   } catch (e) {
-    bar.className = 'notification is-danger py-2 px-3 mb-4';
-    bar.innerHTML = '❌ <strong>Gagal terhubung.</strong> Pastikan Apps Script sudah di-redeploy dengan versi baru (buka script.google.com → Deploy → Manage deployments → edit → New version → Deploy).';
-    document.getElementById('sbStatus').textContent = 'Gagal terhubung';
-    console.error(e);
+    setConn('err', 'Gagal terhubung');
+    console.error('[loadItems]', e.message);
   }
 }
 
 async function loadStokCache() {
   try {
     const d = await call(api() + '?action=getStok');
-    if (Array.isArray(d)) d.forEach(x => { stokCache[x.id] = x.stok; });
+    if (Array.isArray(d)) d.forEach(x => { stokCache[x.id] = Number(x.stok) || 0; });
     refreshPill();
   } catch (e) { /* silent */ }
 }
 
 function refreshPill() {
-  const id = document.getElementById('idBarang').value;
+  const id   = document.getElementById('idBarang').value;
   const wrap = document.getElementById('stokWrap');
   const pill = document.getElementById('stokPill');
   if (!id) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  const s = stokCache[id];
-  if (s !== undefined) {
-    pill.textContent   = `Stok saat ini: ${s}`;
-    pill.style.background  = s<=0?'#fff5f7':s<5?'#fffaeb':'#ebfffc';
-    pill.style.color       = s<=0?'#cc0f35':s<5?'#947600':'#257953';
-    pill.style.borderColor = s<=0?'#ff3860':s<5?'#ffe08a':'#48c774';
+  const s = stokCache[id] !== undefined ? stokCache[id] : null;
+  if (s === null) {
+    pill.className = 'stok-info stok-ok';
+    pill.textContent = '📦 Stok: 0 (belum ada transaksi)';
+  } else if (s <= 0) {
+    pill.className = 'stok-info stok-hab';
+    pill.textContent = `⚠️ Stok HABIS: ${s}`;
+  } else if (s < 5) {
+    pill.className = 'stok-info stok-kri';
+    pill.textContent = `⚡ Stok Kritis: ${s}`;
   } else {
-    Object.assign(pill.style, { background:'#f5f5f5', color:'#888', borderColor:'#ddd' });
-    pill.textContent = 'Stok: 0 (belum ada transaksi)';
+    pill.className = 'stok-info stok-ok';
+    pill.textContent = `✅ Stok saat ini: ${s}`;
   }
 }
 
@@ -525,33 +651,39 @@ async function submitData() {
   const qty = document.getElementById('qty').value;
   const ket = document.getElementById('keterangan').value.trim();
 
-  if (!id)          { toast('⚠️ Pilih barang terlebih dahulu!', 1); return; }
-  if (!qty||qty<=0) { toast('⚠️ Isi QTY yang valid!', 1); return; }
-  if (!ket)         { toast('⚠️ Keterangan wajib diisi!', 1); return; }
+  if (!id)          { toast('⚠️ Pilih barang terlebih dahulu!', 'err'); return; }
+  if (!qty || qty <= 0) { toast('⚠️ Isi QTY yang valid!', 'err'); return; }
+  if (!ket)         { toast('⚠️ Keterangan wajib diisi!', 'err'); return; }
 
-  btn.classList.add('is-loading'); btn.disabled = true;
+  btn.disabled = true; btn.classList.add('loading');
+  btn.textContent = '⏳ Menyimpan...';
+
   const p = new URLSearchParams({
     action: 'addTransaksi',
     jenis   : document.getElementById('jenis').value,
     tanggal : document.getElementById('tanggal').value,
     idBarang: id, qty, keterangan: ket
   });
+
   try {
     const d = await call(`${api()}?${p}`);
     if (d.success) {
       stokCache[id] = d.liveStok;
       refreshPill();
-      toast(`✅ Berhasil! Live Stok ${id}: ${d.liveStok}`);
+      toast(`✅ Berhasil disimpan! Live Stok ${id}: ${d.liveStok}`, 'ok');
       document.getElementById('qty').value = '';
       document.getElementById('keterangan').value = '';
       loaded.riwayat = false;
     } else {
-      toast('❌ Gagal: ' + (d.error || 'Unknown'), 1);
+      toast('❌ Gagal: ' + (d.error || 'Unknown'), 'err');
     }
   } catch (e) {
-    toast('❌ Koneksi gagal. Coba lagi.', 1);
+    toast('❌ Koneksi gagal. Coba lagi.', 'err');
     console.error(e);
-  } finally { btn.classList.remove('is-loading'); btn.disabled = false; }
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading');
+    btn.textContent = '💾 Simpan Transaksi';
+  }
 }
 
 // ════════════════════════════════════
@@ -560,16 +692,16 @@ async function submitData() {
 let rData = [], rTimer;
 
 async function loadR() {
-  document.getElementById('rStatus').textContent = 'Memuat...';
+  document.getElementById('rStatus').textContent = '⏳ Memuat...';
   try {
     const d = await call(`${api()}?action=getTransaksi&limit=500`);
     if (d.error) throw new Error(d.error);
     rData = Array.isArray(d) ? d : [];
     renderR(); sumR();
     loaded.riwayat = true;
-    document.getElementById('rStatus').textContent = 'Sinkron — ' + new Date().toLocaleTimeString('id-ID');
+    document.getElementById('rStatus').textContent = '✅ Sinkron — ' + new Date().toLocaleTimeString('id-ID');
   } catch (e) {
-    document.getElementById('rStatus').innerHTML = '<span style="color:#ff3860">❌ Gagal memuat</span>';
+    document.getElementById('rStatus').innerHTML = '<span style="color:#dc2626">❌ Gagal memuat</span>';
     console.error(e);
   }
   startTimer('r');
@@ -580,7 +712,7 @@ function renderR() {
   const jn = document.getElementById('rFJenis').value;
   const tg = document.getElementById('rFTgl').value;
   let tf = '';
-  if (tg) { const [y,m,d]=tg.split('-'); tf=`${m}/${d}/${y}`; }
+  if (tg) { const [y,m,d] = tg.split('-'); tf = `${m}/${d}/${y}`; }
 
   const rows = rData.filter(r =>
     (!q  || String(r.idBarang).toLowerCase().includes(q)) &&
@@ -593,35 +725,36 @@ function renderR() {
     tbody.innerHTML = '<tr><td colspan="9" class="empty-td">Tidak ada data</td></tr>'; return;
   }
   tbody.innerHTML = rows.map(r => {
-    const jl = (r.jenis||'').toLowerCase();
-    const s  = Number(r.liveStok)||0;
-    const sc = s<=0?'c-hab':s<5?'c-kri':'c-aman';
-    const iv = Number(r.inQty)||0, ov = Number(r.outQty)||0;
+    const jl = (r.jenis || '').toLowerCase();
+    const s  = Number(r.liveStok) || 0;
+    const sc = s <= 0 ? 'c-hab' : s < 5 ? 'c-kri' : 'c-aman';
+    const iv = Number(r.inQty)  || 0;
+    const ov = Number(r.outQty) || 0;
     return `<tr>
-      <td>${r.no}</td>
+      <td style="color:#94a3b8">${r.no}</td>
       <td><span class="bdg bdg-${jl}">${r.jenis}</span></td>
-      <td>${r.tanggal||'—'}</td>
-      <td class="fw7">${r.idBarang||'—'}</td>
-      <td style="max-width:180px;white-space:normal;color:#555">${r.keterangan||'—'}</td>
-      <td>${Number(r.qty)||0}</td>
-      <td class="c-in">${iv>0?'+'+iv:'—'}</td>
-      <td class="c-out">${ov>0?'-'+ov:'—'}</td>
+      <td>${r.tanggal || '—'}</td>
+      <td class="fw7">${r.idBarang || '—'}</td>
+      <td style="max-width:200px;white-space:normal;color:#475569">${r.keterangan || '—'}</td>
+      <td class="fw7">${Number(r.qty) || 0}</td>
+      <td class="c-in fw7">${iv > 0 ? '+' + iv : '—'}</td>
+      <td class="c-out fw7">${ov > 0 ? '-' + ov : '—'}</td>
       <td class="fw7 ${sc}">${s}</td>
     </tr>`;
   }).join('');
 }
 
 function sumR() {
-  const mk = rData.filter(r=>r.jenis==='MASUK'), kl = rData.filter(r=>r.jenis==='KELUAR');
+  const mk = rData.filter(r => r.jenis === 'MASUK');
+  const kl = rData.filter(r => r.jenis === 'KELUAR');
   document.getElementById('rTotal').textContent  = rData.length;
   document.getElementById('rMasuk').textContent  = mk.length;
   document.getElementById('rKeluar').textContent = kl.length;
-  document.getElementById('rQtyIn').textContent  = mk.reduce((s,r)=>s+(Number(r.inQty)||0),0).toLocaleString('id-ID');
-  document.getElementById('rQtyOut').textContent = kl.reduce((s,r)=>s+(Number(r.outQty)||0),0).toLocaleString('id-ID');
+  document.getElementById('rQtyIn').textContent  = mk.reduce((s, r) => s + (Number(r.inQty)  || 0), 0).toLocaleString('id-ID');
+  document.getElementById('rQtyOut').textContent = kl.reduce((s, r) => s + (Number(r.outQty) || 0), 0).toLocaleString('id-ID');
 }
-
-function clearRFilter() {
-  ['rFBarang','rFJenis','rFTgl'].forEach(id => { document.getElementById(id).value = ''; });
+function clearRF() {
+  ['rFBarang','rFJenis','rFTgl'].forEach(id => document.getElementById(id).value = '');
   renderR();
 }
 
@@ -631,7 +764,7 @@ function clearRFilter() {
 let sItems = [], sMap = {}, sMax = 1, sTimer;
 
 async function loadS() {
-  document.getElementById('sStatus').textContent = 'Memuat...';
+  document.getElementById('sStatus').textContent = '⏳ Memuat...';
   try {
     const [items, stokArr] = await Promise.all([
       call(api() + '?action=getItems'),
@@ -639,15 +772,15 @@ async function loadS() {
     ]);
     if (items.error) throw new Error(items.error);
     sItems = Array.isArray(items) ? items : [];
-    sMap = {};
-    if (Array.isArray(stokArr)) stokArr.forEach(x => { sMap[x.id] = Number(x.stok)||0; });
+    sMap   = {};
+    if (Array.isArray(stokArr)) stokArr.forEach(x => { sMap[x.id] = Number(x.stok) || 0; });
     const vals = Object.values(sMap);
     sMax = vals.length ? Math.max(...vals, 1) : 1;
     renderS(); sumS();
     loaded.stok = true;
-    document.getElementById('sStatus').textContent = 'Sinkron — ' + new Date().toLocaleTimeString('id-ID');
+    document.getElementById('sStatus').textContent = '✅ Sinkron — ' + new Date().toLocaleTimeString('id-ID');
   } catch (e) {
-    document.getElementById('sStatus').innerHTML = '<span style="color:#ff3860">❌ Gagal memuat</span>';
+    document.getElementById('sStatus').innerHTML = '<span style="color:#dc2626">❌ Gagal memuat</span>';
     console.error(e);
   }
   startTimer('s');
@@ -658,12 +791,11 @@ function renderS() {
   const fs = document.getElementById('sFSt').value;
   let rows = sItems.filter(i =>
     (!q  || i.id.toLowerCase().includes(q) || i.nama.toLowerCase().includes(q)) &&
-    (!fs || stSt(sMap[i.id]??0) === fs)
+    (!fs || stSt(sMap[i.id] ?? 0) === fs)
   );
-  rows.sort((a,b) => {
-    const o = {habis:0,kritis:1,aman:2};
-    const d = o[stSt(sMap[a.id]??0)] - o[stSt(sMap[b.id]??0)];
-    return d || a.id.localeCompare(b.id);
+  rows.sort((a, b) => {
+    const o = { habis: 0, kritis: 1, aman: 2 };
+    return (o[stSt(sMap[a.id] ?? 0)] - o[stSt(sMap[b.id] ?? 0)]) || a.id.localeCompare(b.id);
   });
   document.getElementById('sCount').textContent = rows.length + ' barang';
   const tbody = document.getElementById('sBody');
@@ -671,18 +803,18 @@ function renderS() {
     tbody.innerHTML = '<tr><td colspan="6" class="empty-td">Tidak ada data</td></tr>'; return;
   }
   tbody.innerHTML = rows.map((item, i) => {
-    const s  = sMap[item.id]??0;
-    const st = stSt(s);
-    const pct = Math.min(100, Math.round(s/sMax*100));
-    const rc  = st==='habis'?'row-habis':st==='kritis'?'row-kritis':'';
-    const nc  = st==='habis'?'c-hab':st==='kritis'?'c-kri':'c-aman';
-    const bc  = st==='habis'?'sbar-habis':st==='kritis'?'sbar-kritis':'sbar-aman';
-    const bt  = st==='habis'?'HABIS':st==='kritis'?'KRITIS':'AMAN';
+    const s   = sMap[item.id] ?? 0;
+    const st  = stSt(s);
+    const pct = Math.min(100, Math.round(s / sMax * 100));
+    const rc  = st === 'habis' ? 'row-habis' : st === 'kritis' ? 'row-kritis' : '';
+    const nc  = st === 'habis' ? 'c-hab' : st === 'kritis' ? 'c-kri' : 'c-aman';
+    const bc  = st === 'habis' ? 'sbar-habis' : st === 'kritis' ? 'sbar-kritis' : 'sbar-aman';
+    const bt  = st === 'habis' ? 'HABIS' : st === 'kritis' ? 'KRITIS' : 'AMAN';
     return `<tr class="${rc}">
-      <td style="color:#ccc">${i+1}</td>
+      <td style="color:#cbd5e1">${i + 1}</td>
       <td class="fw7">${item.id}</td>
       <td>${item.nama}</td>
-      <td class="fw7 ${nc}" style="font-size:1rem">${s}</td>
+      <td class="fw7 ${nc}" style="font-size:1.05rem">${s}</td>
       <td><div class="sbar-wrap"><div class="sbar ${bc}" style="width:${pct}%"></div></div></td>
       <td><span class="bdg bdg-${st}">${bt}</span></td>
     </tr>`;
@@ -690,18 +822,16 @@ function renderS() {
 }
 
 function sumS() {
-  let a=0,k=0,h=0;
-  sItems.forEach(i => { const s=stSt(sMap[i.id]??0); if(s==='aman')a++;else if(s==='kritis')k++;else h++; });
+  let a = 0, k = 0, h = 0;
+  sItems.forEach(i => { const s = stSt(sMap[i.id] ?? 0); if (s==='aman') a++; else if (s==='kritis') k++; else h++; });
   document.getElementById('sTotal').textContent = sItems.length;
   document.getElementById('sAman').textContent  = a;
   document.getElementById('sKri').textContent   = k;
   document.getElementById('sHab').textContent   = h;
 }
-
-function stSt(s) { return s<=0?'habis':s<5?'kritis':'aman'; }
-
-function clearSFilter() {
-  ['sFCari','sFSt'].forEach(id => { document.getElementById(id).value = ''; });
+function stSt(s) { return s <= 0 ? 'habis' : s < 5 ? 'kritis' : 'aman'; }
+function clearSF() {
+  ['sFCari','sFSt'].forEach(id => document.getElementById(id).value = '');
   renderS();
 }
 
@@ -709,28 +839,29 @@ function clearSFilter() {
 //  AUTO-REFRESH COUNTDOWN
 // ════════════════════════════════════
 function startTimer(t) {
-  if (t==='r') clearInterval(rTimer); else clearInterval(sTimer);
+  if (t === 'r') clearInterval(rTimer); else clearInterval(sTimer);
   let c = 30;
-  const cdownId = t==='r' ? 'rCdown' : 'sCdown';
-  const fn      = t==='r' ? loadR    : loadS;
-  const tab     = t==='r' ? 'riwayat': 'stok';
+  const cdownId = t === 'r' ? 'rCdown'   : 'sCdown';
+  const fn      = t === 'r' ? loadR      : loadS;
+  const tab     = t === 'r' ? 'riwayat'  : 'stok';
   const tmr = setInterval(() => {
     c--;
     const el = document.getElementById(cdownId);
     if (el) el.textContent = `· refresh dalam ${c}s`;
-    if (c<=0) { clearInterval(tmr); if (activeTab===tab) fn(); }
+    if (c <= 0) { clearInterval(tmr); if (activeTab === tab) fn(); }
   }, 1000);
-  if (t==='r') rTimer=tmr; else sTimer=tmr;
+  if (t === 'r') rTimer = tmr; else sTimer = tmr;
 }
 
 // ════════════════════════════════════
 //  TOAST
 // ════════════════════════════════════
-function toast(msg, isErr=0) {
+function toast(msg, type = 'ok') {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast'+(isErr?' err':'');
+  t.textContent = msg;
+  t.className = `toast ${type}`;
   t.style.display = 'block';
-  setTimeout(()=>{ t.style.display='none'; }, 4000);
+  setTimeout(() => { t.style.display = 'none'; }, 4000);
 }
 
 // ════════════════════════════════════
