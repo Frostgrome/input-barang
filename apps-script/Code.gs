@@ -51,16 +51,15 @@ function getItems() {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
 
-  // Baca semua baris dari row 2, cari yang kolom A punya '|'
-  // Format kolom A: "BR-0001 | MERK | NAMA" → ID = bagian sebelum ' | ' pertama
-  // Kolom B: NAMA BARANG
-  const values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  // Kolom B: "BR-0001 | MERK | NAMA" → ID = bagian sebelum ' | ' pertama
+  // Kolom C: NAMA BARANG
+  const values = sheet.getRange(2, 2, lastRow - 1, 2).getValues(); // mulai kolom B (2), ambil 2 kolom (B & C)
   const results = [];
   values.forEach(r => {
-    const raw = String(r[0] || '').trim();
+    const raw = String(r[0] || '').trim(); // kolom B
     if (!raw.includes('|')) return;
     const id   = raw.split('|')[0].trim();
-    const nama = String(r[1] || '').trim();
+    const nama = String(r[1] || '').trim(); // kolom C
     if (id && nama) results.push({ id, nama });
   });
   return results;
