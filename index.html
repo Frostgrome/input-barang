@@ -53,7 +53,12 @@
       background: white; border-radius: 14px;
       padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,.07);
     }
-    .card-box.narrow { max-width: 520px; }
+    .card-box.narrow { max-width: 520px; margin: 0 auto; }
+
+    /* ── Center input section ────────────────── */
+    #sec-input { display: flex; flex-direction: column; align-items: center; }
+    #sec-input .page-hdr,
+    #sec-input #inputStatus { width: 100%; max-width: 520px; }
 
     /* ── CHOICES ─────────────────────────────── */
     .choices__inner { background: white !important; border-radius: 4px !important; min-height: 40px !important; }
@@ -403,14 +408,15 @@ const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbym4yUrlggMg35bEVqv
 const api = () => localStorage.getItem('apiUrl') || DEFAULT_API;
 
 // ── JSONP (no CORS issue) ─────────────────────────────────
-function call(url) {
+function call(url, timeout = 12000) {
   return new Promise((res, rej) => {
     const name = '_cb' + Date.now() + Math.random().toString(36).slice(2);
     const s = document.createElement('script');
     s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + name;
-    s.onerror = () => { clean(); rej(new Error('Gagal load script')); };
+    const t = setTimeout(() => { clean(); rej(new Error('Timeout')); }, timeout);
+    s.onerror = () => { clean(); rej(new Error('Script load error')); };
     window[name] = d => { clean(); res(d); };
-    function clean() { delete window[name]; s.parentNode?.removeChild(s); }
+    function clean() { clearTimeout(t); delete window[name]; s.parentNode?.removeChild(s); }
     document.head.appendChild(s);
   });
 }
@@ -481,7 +487,7 @@ async function loadItems() {
     loadStokCache();
   } catch (e) {
     bar.className = 'notification is-danger py-2 px-3 mb-4';
-    bar.textContent = '❌ Gagal terhubung. Klik ⚙️ Setup di sidebar untuk mengatur URL.';
+    bar.innerHTML = '❌ <strong>Gagal terhubung.</strong> Pastikan Apps Script sudah di-redeploy dengan versi baru (buka script.google.com → Deploy → Manage deployments → edit → New version → Deploy).';
     document.getElementById('sbStatus').textContent = 'Gagal terhubung';
     console.error(e);
   }
