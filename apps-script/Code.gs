@@ -48,20 +48,21 @@ function getItems() {
   if (!sheet) return { error: 'Sheet "0. PERSIAPAN" tidak ditemukan' };
 
   const lastRow = sheet.getLastRow();
-  if (lastRow < 5) return [];
+  if (lastRow < 2) return [];
 
-  // Data mulai baris 5 (4 baris header di atas)
-  // Kolom A: "BR-0001 | MERK | NAMA BARANG" → ambil bagian sebelum " | "
+  // Baca semua baris dari row 2, cari yang kolom A punya '|'
+  // Format kolom A: "BR-0001 | MERK | NAMA" → ID = bagian sebelum ' | ' pertama
   // Kolom B: NAMA BARANG
-  const values = sheet.getRange(5, 1, lastRow - 4, 2).getValues();
-  return values
-    .filter(r => r[0] !== '' && r[0] !== null && String(r[0]).trim() !== '')
-    .map(r => {
-      const id   = String(r[0]).split('|')[0].trim();
-      const nama = String(r[1]).trim();
-      return { id, nama };
-    })
-    .filter(r => r.id !== '' && r.nama !== '');
+  const values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  const results = [];
+  values.forEach(r => {
+    const raw = String(r[0] || '').trim();
+    if (!raw.includes('|')) return;
+    const id   = raw.split('|')[0].trim();
+    const nama = String(r[1] || '').trim();
+    if (id && nama) results.push({ id, nama });
+  });
+  return results;
 }
 
 // =============================================
