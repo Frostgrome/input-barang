@@ -187,11 +187,25 @@
 </div>
 
 <script>
-  let allItems  = [];   // [{ id, nama }]
-  let stokMap   = {};   // { id: liveStok }
+  let allItems  = [];
+  let stokMap   = {};
   let maxStok   = 1;
   let countdownVal = 30;
   let countdownTimer;
+
+  // ── JSONP ─────────────────────────────────────────────────
+  function apiCall(url) {
+    return new Promise((resolve, reject) => {
+      const name = '_cb' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      const s    = document.createElement('script');
+      const sep  = url.includes('?') ? '&' : '?';
+      s.src = url + sep + 'callback=' + name;
+      s.onerror = () => { cleanup(); reject(new Error('Gagal')); };
+      window[name] = (data) => { cleanup(); resolve(data); };
+      function cleanup() { delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); }
+      document.head.appendChild(s);
+    });
+  }
 
   const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbym4yUrlggMg35bEVqvueNK3mk-q-d6wB0PeYjKqkC7p_8MziIc8KPMatR1TExrPkdBIQ/exec';
   function getApiUrl() { return localStorage.getItem('apiUrl') || DEFAULT_API; }
@@ -208,11 +222,10 @@
 
     status.textContent = 'Memuat...';
     try {
-      const [resItems, resStok] = await Promise.all([
-        fetch(`${apiUrl}?action=getItems`),
-        fetch(`${apiUrl}?action=getStok`)
+      const [items, stokArr] = await Promise.all([
+        apiCall(`${apiUrl}?action=getItems`),
+        apiCall(`${apiUrl}?action=getStok`)
       ]);
-      const [items, stokArr] = await Promise.all([resItems.json(), resStok.json()]);
 
       if (items.error)  throw new Error(items.error);
       if (stokArr.error) throw new Error(stokArr.error);

@@ -155,6 +155,20 @@
   let choicesInstance;
   let stokCache = {};   // { idBarang: liveStok }
 
+  // ── JSONP (menghindari CORS block) ───────────────────────
+  function apiCall(url) {
+    return new Promise((resolve, reject) => {
+      const name = '_cb' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      const s    = document.createElement('script');
+      const sep  = url.includes('?') ? '&' : '?';
+      s.src = url + sep + 'callback=' + name;
+      s.onerror = () => { cleanup(); reject(new Error('Gagal memuat script')); };
+      window[name] = (data) => { cleanup(); resolve(data); };
+      function cleanup() { delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); }
+      document.head.appendChild(s);
+    });
+  }
+
   // ── API URL (localStorage) ───────────────────────────────
   const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbym4yUrlggMg35bEVqvueNK3mk-q-d6wB0PeYjKqkC7p_8MziIc8KPMatR1TExrPkdBIQ/exec';
   function getApiUrl() { return localStorage.getItem('apiUrl') || DEFAULT_API; }
@@ -197,8 +211,7 @@
   async function loadItems() {
     const bar = document.getElementById('statusBar');
     try {
-      const res   = await fetch(`${getApiUrl()}?action=getItems`);
-      const items = await res.json();
+      const items = await apiCall(`${getApiUrl()}?action=getItems`);
 
       if (items.error) throw new Error(items.error);
       if (!Array.isArray(items) || items.length === 0) {
@@ -227,8 +240,7 @@
   // ── Load live stok semua barang ──────────────────────────
   async function loadStok() {
     try {
-      const res  = await fetch(`${getApiUrl()}?action=getStok`);
-      const data = await res.json();
+      const data = await apiCall(`${getApiUrl()}?action=getStok`);
       if (Array.isArray(data)) {
         data.forEach(item => { stokCache[item.id] = item.stok; });
       }
@@ -284,8 +296,7 @@
     });
 
     try {
-      const res  = await fetch(`${apiUrl}?${params}`);
-      const data = await res.json();
+      const data = await apiCall(`${apiUrl}?${params}`);
 
       if (data.success) {
         stokCache[idBarang] = data.liveStok;

@@ -9,7 +9,8 @@ const SHEET_PENCATATAN = 'pencatatan';
 // ENTRY POINT — semua request masuk sini
 // =============================================
 function doGet(e) {
-  const action = e.parameter.action || '';
+  const action   = e.parameter.action   || '';
+  const callback = e.parameter.callback || '';
   let result;
 
   try {
@@ -22,8 +23,17 @@ function doGet(e) {
     result = { error: err.message };
   }
 
+  const json = JSON.stringify(result);
+
+  // JSONP — menghindari CORS block dari browser
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
   return ContentService
-    .createTextOutput(JSON.stringify(result))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
 
