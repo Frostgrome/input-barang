@@ -2,8 +2,8 @@
 // KONFIGURASI
 // =============================================
 const SPREADSHEET_ID   = '1cxc4VQYQxbLcFeO5DHCE311C85FT-p2ppOHC_vnSyGw';
-const SHEET_PERSIAPAN  = 'persiapan';
-const SHEET_PENCATATAN = 'pencatatan';
+const SHEET_PERSIAPAN  = '0. PERSIAPAN';
+const SHEET_PENCATATAN = '1. PENCATATAN';
 
 // =============================================
 // ENTRY POINT — semua request masuk sini
