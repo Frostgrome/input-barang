@@ -43,17 +43,25 @@ function doGet(e) {
 // Kolom A = ID BARANG, Kolom B = NAMA BARANG
 // =============================================
 function getItems() {
-  const ss  = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(SHEET_PERSIAPAN);
-  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_PERSIAPAN); }
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_PERSIAPAN);
+  if (!sheet) return { error: 'Sheet "0. PERSIAPAN" tidak ditemukan' };
 
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return [];
+  if (lastRow < 5) return [];
 
-  const values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  // Data mulai baris 5 (4 baris header di atas)
+  // Kolom A: "BR-0001 | MERK | NAMA BARANG" → ambil bagian sebelum " | "
+  // Kolom B: NAMA BARANG
+  const values = sheet.getRange(5, 1, lastRow - 4, 2).getValues();
   return values
-    .filter(r => r[0] !== '' && r[0] !== null)
-    .map(r => ({ id: String(r[0]).trim(), nama: String(r[1]).trim() }));
+    .filter(r => r[0] !== '' && r[0] !== null && String(r[0]).trim() !== '')
+    .map(r => {
+      const id   = String(r[0]).split('|')[0].trim();
+      const nama = String(r[1]).trim();
+      return { id, nama };
+    })
+    .filter(r => r.id !== '' && r.nama !== '');
 }
 
 // =============================================
