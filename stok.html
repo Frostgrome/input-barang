@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Stok Barang</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body { padding: 14px; background: #f0f4f8; min-height: 100vh; }
+    .page-wrap { max-width: 800px; margin: 0 auto; }
+
+    .header-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .summary-box {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .summary-item {
+      flex: 1;
+      min-width: 130px;
+      background: white;
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+    .summary-item .val { font-size: 1.5rem; font-weight: 700; }
+    .summary-item .lbl { font-size: 0.74rem; color: #999; margin-top: 2px; }
+
+    .table-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      overflow-x: auto;
+    }
+    table { font-size: 0.85rem; }
+
+    /* Warna baris berdasar stok */
+    .row-habis   { background: #fff5f7 !important; }
+    .row-kritis  { background: #fffaeb !important; }
+    .row-aman    { background: white; }
+
+    .stok-val { font-size: 1.1rem; font-weight: 700; }
+    .stok-habis  { color: #ff3860; }
+    .stok-kritis { color: #947600; }
+    .stok-aman   { color: #257953; }
+
+    .stok-bar-wrap {
+      background: #f0f0f0;
+      border-radius: 20px;
+      height: 8px;
+      width: 120px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .stok-bar {
+      height: 100%;
+      border-radius: 20px;
+      transition: width .3s;
+    }
+    .bar-habis  { background: #ff3860; }
+    .bar-kritis { background: #ffdd57; }
+    .bar-aman   { background: #23d160; }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge-habis  { background:#fff5f7; color:#cc0f35; border:1px solid #ff3860; }
+    .badge-kritis { background:#fffaeb; color:#947600; border:1px solid #ffe08a; }
+    .badge-aman   { background:#effaf5; color:#257953; border:1px solid #23d160; }
+
+    .pulse {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #23d160;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(35,209,96,.6); }
+      70%  { box-shadow: 0 0 0 7px rgba(35,209,96,0); }
+      100% { box-shadow: 0 0 0 0 rgba(35,209,96,0); }
+    }
+    .countdown { font-size: 0.74rem; color: #bbb; }
+    .empty-td { text-align: center; color: #bbb; padding: 36px !important; }
+    tr:hover { opacity: .92; }
+    .nav-links { display:flex; gap:16px; flex-wrap:wrap; }
+    .nav-links a { color:#3273dc; font-size:.85rem; text-decoration:none; }
+    .nav-links a:hover { text-decoration:underline; }
+    .filter-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="header-card">
+    <div>
+      <h3 class="title is-4 mb-0">📊 Live Stok Barang</h3>
+      <p class="subtitle is-6 mt-1 mb-0" style="font-size:.82rem">
+        <span class="pulse"></span>
+        <span id="syncStatus">Memuat data...</span>
+        &nbsp;·&nbsp;
+        <span class="countdown" id="countdown"></span>
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="nav-links">
+        <a href="Index.html">➕ Input Baru</a>
+        <a href="transaksi.html">📋 Riwayat</a>
+      </div>
+      <button class="button is-light is-small" onclick="loadData()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="summary-box">
+    <div class="summary-item">
+      <div class="val" id="sumTotal">—</div>
+      <div class="lbl">Total Jenis Barang</div>
+    </div>
+    <div class="summary-item">
+      <div class="val stok-aman" id="sumAman">—</div>
+      <div class="lbl">Stok Aman (≥5)</div>
+    </div>
+    <div class="summary-item">
+      <div class="val stok-kritis" id="sumKritis">—</div>
+      <div class="lbl">Stok Kritis (1–4)</div>
+    </div>
+    <div class="summary-item">
+      <div class="val stok-habis" id="sumHabis">—</div>
+      <div class="lbl">Stok Habis (0)</div>
+    </div>
+  </div>
+
+  <!-- Filter + Tabel -->
+  <div class="table-card">
+    <div class="filter-row">
+      <input class="input is-small" type="text" id="fCari"
+             placeholder="🔍 Cari ID atau nama barang..." style="max-width:240px" oninput="renderTable()">
+      <div class="select is-small">
+        <select id="fStatus" onchange="renderTable()">
+          <option value="">Semua Status</option>
+          <option value="habis">Habis (0)</option>
+          <option value="kritis">Kritis (1–4)</option>
+          <option value="aman">Aman (≥5)</option>
+        </select>
+      </div>
+      <button class="button is-light is-small" onclick="clearFilter()">✕ Reset</button>
+      <span style="margin-left:auto;font-size:.78rem;color:#aaa" id="rowCount"></span>
+    </div>
+
+    <table class="table is-fullwidth is-hoverable">
+      <thead>
+        <tr>
+          <th style="width:42px">#</th>
+          <th>ID BARANG</th>
+          <th>NAMA BARANG</th>
+          <th>LIVE STOK</th>
+          <th>BAR</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  let allItems  = [];   // [{ id, nama }]
+  let stokMap   = {};   // { id: liveStok }
+  let maxStok   = 1;
+  let countdownVal = 30;
+  let countdownTimer;
+
+  function getApiUrl() { return localStorage.getItem('apiUrl') || ''; }
+
+  // ── Load data barang + stok paralel ─────────────────────
+  async function loadData() {
+    const apiUrl = getApiUrl();
+    const status = document.getElementById('syncStatus');
+
+    if (!apiUrl) {
+      status.textContent = '❌ URL belum diatur — buka halaman Input dan klik ⚙️ Setup';
+      return;
+    }
+
+    status.textContent = 'Memuat...';
+    try {
+      const [resItems, resStok] = await Promise.all([
+        fetch(`${apiUrl}?action=getItems`),
+        fetch(`${apiUrl}?action=getStok`)
+      ]);
+      const [items, stokArr] = await Promise.all([resItems.json(), resStok.json()]);
+
+      if (items.error)  throw new Error(items.error);
+      if (stokArr.error) throw new Error(stokArr.error);
+
+      allItems = Array.isArray(items)   ? items   : [];
+      stokMap  = {};
+      if (Array.isArray(stokArr)) {
+        stokArr.forEach(s => { stokMap[s.id] = Number(s.stok) || 0; });
+      }
+
+      // Nilai maksimal stok untuk proporsi bar
+      const vals = Object.values(stokMap);
+      maxStok = vals.length > 0 ? Math.max(...vals, 1) : 1;
+
+      renderTable();
+      updateSummary();
+      status.textContent = 'Sinkron — ' + new Date().toLocaleTimeString('id-ID');
+    } catch (err) {
+      status.textContent = '❌ Gagal memuat data';
+      console.error(err);
+    }
+    startCountdown();
+  }
+
+  // ── Render tabel ─────────────────────────────────────────
+  function renderTable() {
+    const q      = document.getElementById('fCari').value.toLowerCase();
+    const fSt    = document.getElementById('fStatus').value;
+
+    const filtered = allItems.filter(item => {
+      if (q && !item.id.toLowerCase().includes(q) && !item.nama.toLowerCase().includes(q)) return false;
+      if (fSt) {
+        const s = getStokStatus(stokMap[item.id] ?? 0);
+        if (s !== fSt) return false;
+      }
+      return true;
+    });
+
+    // Sort: habis → kritis → aman, lalu by ID
+    filtered.sort((a, b) => {
+      const order = { habis: 0, kritis: 1, aman: 2 };
+      const sa = getStokStatus(stokMap[a.id] ?? 0);
+      const sb = getStokStatus(stokMap[b.id] ?? 0);
+      if (order[sa] !== order[sb]) return order[sa] - order[sb];
+      return a.id.localeCompare(b.id);
+    });
+
+    document.getElementById('rowCount').textContent = `${filtered.length} barang`;
+
+    const tbody = document.getElementById('tbody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-td">Tidak ada data ditemukan</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((item, i) => {
+      const stok   = stokMap[item.id] ?? 0;
+      const status = getStokStatus(stok);
+      const pct    = Math.min(100, Math.round((stok / maxStok) * 100));
+      const rowCls = status === 'habis' ? 'row-habis' : status === 'kritis' ? 'row-kritis' : 'row-aman';
+      const numCls = status === 'habis' ? 'stok-habis' : status === 'kritis' ? 'stok-kritis' : 'stok-aman';
+      const barCls = status === 'habis' ? 'bar-habis'  : status === 'kritis' ? 'bar-kritis'  : 'bar-aman';
+      const badgeCls = `badge-${status}`;
+      const badgeTxt = status === 'habis' ? 'HABIS' : status === 'kritis' ? 'KRITIS' : 'AMAN';
+
+      return `
+        <tr class="${rowCls}">
+          <td style="color:#bbb">${i + 1}</td>
+          <td><strong>${item.id}</strong></td>
+          <td>${item.nama}</td>
+          <td class="stok-val ${numCls}">${stok}</td>
+          <td>
+            <div class="stok-bar-wrap">
+              <div class="stok-bar ${barCls}" style="width:${pct}%"></div>
+            </div>
+          </td>
+          <td><span class="badge-status ${badgeCls}">${badgeTxt}</span></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Helper status ────────────────────────────────────────
+  function getStokStatus(stok) {
+    if (stok <= 0)  return 'habis';
+    if (stok <  5)  return 'kritis';
+    return 'aman';
+  }
+
+  // ── Summary cards ────────────────────────────────────────
+  function updateSummary() {
+    let aman = 0, kritis = 0, habis = 0;
+    allItems.forEach(item => {
+      const s = getStokStatus(stokMap[item.id] ?? 0);
+      if (s === 'aman')   aman++;
+      else if (s === 'kritis') kritis++;
+      else habis++;
+    });
+    document.getElementById('sumTotal').textContent  = allItems.length;
+    document.getElementById('sumAman').textContent   = aman;
+    document.getElementById('sumKritis').textContent = kritis;
+    document.getElementById('sumHabis').textContent  = habis;
+  }
+
+  // ── Filter helpers ───────────────────────────────────────
+  function clearFilter() {
+    document.getElementById('fCari').value   = '';
+    document.getElementById('fStatus').value = '';
+    renderTable();
+  }
+
+  // ── Auto-refresh countdown ───────────────────────────────
+  function startCountdown() {
+    clearInterval(countdownTimer);
+    countdownVal = 30;
+    countdownTimer = setInterval(() => {
+      countdownVal--;
+      document.getElementById('countdown').textContent = `refresh dalam ${countdownVal}s`;
+      if (countdownVal <= 0) { clearInterval(countdownTimer); loadData(); }
+    }, 1000);
+  }
+
+  window.onload = loadData;
+</script>
+</body>
+</html>

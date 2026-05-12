@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+  <style>
+    body { padding: 20px; background: #f5f5f5; }
+    .container { max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .choices__inner { background-color: white !important; border-radius: 4px !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3 class="title is-4 has-text-centered">📝 Input Transaksi</h3>
+    <div id="form">
+      <div class="field">
+        <label class="label">Jenis Transaksi</label>
+        <div class="select is-fullwidth">
+          <select id="jenis">
+            <option value="IN">BARANG MASUK (IN)</option>
+            <option value="OUT">BARANG KELUAR (OUT)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Tanggal</label>
+        <input class="input" type="date" id="tanggal">
+      </div>
+
+      <div class="field">
+        <label class="label">Pilih Barang</label>
+        <select id="idBarang"></select>
+      </div>
+
+      <div class="field">
+        <label class="label">Quantity</label>
+        <input class="input" type="number" id="qty" placeholder="0">
+      </div>
+
+      <div class="field">
+        <label class="label">Keterangan</label>
+        <textarea class="textarea" id="keterangan" rows="2" placeholder="Catatan..."></textarea>
+      </div>
+
+      <button class="button is-primary is-fullwidth" onclick="submitData()" id="btn">Simpan Data</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script>
+    let choicesInstance;
+
+    window.onload = () => {
+      document.getElementById('tanggal').valueAsDate = new Date();
+      
+      const element = document.getElementById('idBarang');
+      choicesInstance = new Choices(element, {
+        searchEnabled: true,
+        searchChoices: true,
+        placeholder: true,
+        placeholderValue: 'Ketik nama barang (contoh: TOTO)',
+        itemSelectText: '',
+      });
+
+      // Fetch items from Google Sheet
+      google.script.run.withSuccessHandler(items => {
+        const formattedItems = items.map(itemName => ({
+          value: itemName,
+          label: itemName
+        }));
+        choicesInstance.setChoices(formattedItems, 'value', 'label', true);
+      }).getItems();
+    };
+
+    function submitData() {
+      const btn = document.getElementById('btn');
+      const idBarang = document.getElementById('idBarang').value;
+      const qty = document.getElementById('qty').value;
+
+      if (!idBarang || !qty) {
+        alert("Pilih barang dan isi qty!");
+        return;
+      }
+
+      btn.classList.add('is-loading');
+      
+      const data = {
+        jenis: document.getElementById('jenis').value,
+        tanggal: document.getElementById('tanggal').value,
+        idBarang: idBarang,
+        qty: qty,
+        keterangan: document.getElementById('keterangan').value
+      };
+
+      google.script.run.withSuccessHandler(() => {
+        alert("Berhasil!");
+        btn.classList.remove('is-loading');
+        document.getElementById('qty').value = '';
+        document.getElementById('keterangan').value = '';
+        choicesInstance.setChoiceByValue('');
+      }).processForm(data);
+    }
+  </script>
+</body>
+</html>

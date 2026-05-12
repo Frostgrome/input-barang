@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Riwayat Transaksi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body { padding: 14px; background: #f0f4f8; min-height: 100vh; }
+    .page-wrap { max-width: 1100px; margin: 0 auto; }
+
+    .header-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .summary-box {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .summary-item {
+      flex: 1;
+      min-width: 130px;
+      background: white;
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+    .summary-item .val { font-size: 1.5rem; font-weight: 700; }
+    .summary-item .lbl { font-size: 0.74rem; color: #999; margin-top: 2px; }
+    .in-color  { color: #23d160; }
+    .out-color { color: #ff3860; }
+
+    .table-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      overflow-x: auto;
+    }
+    table { font-size: 0.82rem; white-space: nowrap; }
+    th { white-space: nowrap; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.74rem;
+      letter-spacing: 0.4px;
+    }
+    .badge-masuk  { background: #effaf5; color: #257953; border: 1px solid #23d160; }
+    .badge-keluar { background: #fff5f7; color: #cc0f35; border: 1px solid #ff3860; }
+
+    .live-stok { font-weight: 700; }
+    .stok-low  { color: #ff3860; }
+    .stok-med  { color: #947600; }
+    .stok-ok   { color: #257953; }
+
+    .pulse {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #23d160;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(35,209,96,.6); }
+      70%  { box-shadow: 0 0 0 7px rgba(35,209,96,0); }
+      100% { box-shadow: 0 0 0 0 rgba(35,209,96,0); }
+    }
+    .countdown { font-size: 0.74rem; color: #bbb; }
+    .empty-td { text-align: center; color: #bbb; padding: 36px !important; }
+    tr:hover { background: #fafbfc !important; }
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .nav-links { display:flex; gap:16px; flex-wrap:wrap; }
+    .nav-links a { color:#3273dc; font-size:.85rem; text-decoration:none; }
+    .nav-links a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="header-card">
+    <div>
+      <h3 class="title is-4 mb-0">📋 Riwayat Transaksi</h3>
+      <p class="subtitle is-6 mt-1 mb-0" style="font-size:.82rem">
+        <span class="pulse"></span>
+        <span id="syncStatus">Memuat data...</span>
+        &nbsp;·&nbsp;
+        <span class="countdown" id="countdown"></span>
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="nav-links">
+        <a href="Index.html">➕ Input Baru</a>
+        <a href="stok.html">📊 Live Stok</a>
+      </div>
+      <button class="button is-light is-small" onclick="loadData()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="summary-box">
+    <div class="summary-item">
+      <div class="val" id="sumTotal">—</div>
+      <div class="lbl">Total Transaksi</div>
+    </div>
+    <div class="summary-item">
+      <div class="val in-color" id="sumMasuk">—</div>
+      <div class="lbl">Barang Masuk</div>
+    </div>
+    <div class="summary-item">
+      <div class="val out-color" id="sumKeluar">—</div>
+      <div class="lbl">Barang Keluar</div>
+    </div>
+    <div class="summary-item">
+      <div class="val in-color" id="sumQtyIn">—</div>
+      <div class="lbl">Total Qty IN</div>
+    </div>
+    <div class="summary-item">
+      <div class="val out-color" id="sumQtyOut">—</div>
+      <div class="lbl">Total Qty OUT</div>
+    </div>
+  </div>
+
+  <!-- Filter + Tabel -->
+  <div class="table-card">
+    <div class="filter-row">
+      <input class="input is-small" type="text" id="fBarang"
+             placeholder="🔍 Cari ID Barang..." style="max-width:200px" oninput="renderTable()">
+      <div class="select is-small">
+        <select id="fJenis" onchange="renderTable()">
+          <option value="">Semua Jenis</option>
+          <option value="MASUK">MASUK</option>
+          <option value="KELUAR">KELUAR</option>
+        </select>
+      </div>
+      <input class="input is-small" type="date" id="fTanggal"
+             style="max-width:160px" onchange="renderTable()">
+      <button class="button is-light is-small" onclick="clearFilter()">✕ Reset</button>
+      <span style="margin-left:auto;font-size:.78rem;color:#aaa" id="rowCount"></span>
+    </div>
+
+    <table class="table is-fullwidth is-hoverable">
+      <thead>
+        <tr>
+          <th style="width:42px">NO</th>
+          <th>JENIS</th>
+          <th>TANGGAL</th>
+          <th>ID BARANG</th>
+          <th style="min-width:160px">KETERANGAN</th>
+          <th>QTY</th>
+          <th class="in-color">IN</th>
+          <th class="out-color">OUT</th>
+          <th>LIVE STOK</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  let allData = [];
+  let countdownVal = 30;
+  let countdownTimer;
+
+  function getApiUrl() { return localStorage.getItem('apiUrl') || ''; }
+
+  // ── Load data dari Apps Script ───────────────────────────
+  async function loadData() {
+    const apiUrl = getApiUrl();
+    const status = document.getElementById('syncStatus');
+
+    if (!apiUrl) {
+      status.textContent = '❌ URL belum diatur — buka halaman Input dan klik ⚙️ Setup';
+      return;
+    }
+
+    status.textContent = 'Memuat...';
+    try {
+      const res  = await fetch(`${apiUrl}?action=getTransaksi&limit=500`);
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+      allData = Array.isArray(data) ? data : [];
+
+      renderTable();
+      updateSummary();
+      status.textContent = 'Sinkron — ' + new Date().toLocaleTimeString('id-ID');
+    } catch (err) {
+      status.textContent = '❌ Gagal memuat data';
+      console.error(err);
+    }
+    startCountdown();
+  }
+
+  // ── Render tabel dengan filter ───────────────────────────
+  function renderTable() {
+    const q     = document.getElementById('fBarang').value.toLowerCase();
+    const jenis = document.getElementById('fJenis').value;
+    const tgl   = document.getElementById('fTanggal').value;
+
+    // Tanggal filter: convert YYYY-MM-DD ke MM/DD/YYYY untuk cocokkan data
+    let tglFormatted = '';
+    if (tgl) {
+      const [y, m, d] = tgl.split('-');
+      tglFormatted = `${m}/${d}/${y}`;
+    }
+
+    const filtered = allData.filter(r => {
+      if (q     && !String(r.idBarang).toLowerCase().includes(q)) return false;
+      if (jenis && r.jenis !== jenis)                              return false;
+      if (tglFormatted && r.tanggal !== tglFormatted)             return false;
+      return true;
+    });
+
+    document.getElementById('rowCount').textContent = `${filtered.length} baris`;
+
+    const tbody = document.getElementById('tbody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-td">Tidak ada data ditemukan</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(r => {
+      const jLow  = (r.jenis || '').toLowerCase();
+      const stok  = Number(r.liveStok) || 0;
+      const stokClass = stok <= 0 ? 'stok-low' : stok < 5 ? 'stok-med' : 'stok-ok';
+      const inVal  = Number(r.inQty)  || 0;
+      const outVal = Number(r.outQty) || 0;
+      return `
+        <tr>
+          <td>${r.no}</td>
+          <td><span class="badge badge-${jLow}">${r.jenis}</span></td>
+          <td>${r.tanggal || '—'}</td>
+          <td><strong>${r.idBarang || '—'}</strong></td>
+          <td style="max-width:220px;white-space:normal;color:#555">${r.keterangan || '—'}</td>
+          <td>${Number(r.qty) || 0}</td>
+          <td class="in-color">${inVal  > 0 ? '+' + inVal  : '—'}</td>
+          <td class="out-color">${outVal > 0 ? '-' + outVal : '—'}</td>
+          <td class="live-stok ${stokClass}">${stok}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Update summary cards ─────────────────────────────────
+  function updateSummary() {
+    const masukRows  = allData.filter(r => r.jenis === 'MASUK');
+    const keluarRows = allData.filter(r => r.jenis === 'KELUAR');
+    const totalIn    = masukRows.reduce((s, r)  => s + (Number(r.inQty)  || 0), 0);
+    const totalOut   = keluarRows.reduce((s, r) => s + (Number(r.outQty) || 0), 0);
+
+    document.getElementById('sumTotal').textContent  = allData.length;
+    document.getElementById('sumMasuk').textContent  = masukRows.length;
+    document.getElementById('sumKeluar').textContent = keluarRows.length;
+    document.getElementById('sumQtyIn').textContent  = totalIn.toLocaleString('id-ID');
+    document.getElementById('sumQtyOut').textContent = totalOut.toLocaleString('id-ID');
+  }
+
+  // ── Filter helpers ───────────────────────────────────────
+  function clearFilter() {
+    document.getElementById('fBarang').value  = '';
+    document.getElementById('fJenis').value   = '';
+    document.getElementById('fTanggal').value = '';
+    renderTable();
+  }
+
+  // ── Auto-refresh countdown ───────────────────────────────
+  function startCountdown() {
+    clearInterval(countdownTimer);
+    countdownVal = 30;
+    countdownTimer = setInterval(() => {
+      countdownVal--;
+      document.getElementById('countdown').textContent = `refresh dalam ${countdownVal}s`;
+      if (countdownVal <= 0) {
+        clearInterval(countdownTimer);
+        loadData();
+      }
+    }, 1000);
+  }
+
+  window.onload = loadData;
+</script>
+</body>
+</html>
