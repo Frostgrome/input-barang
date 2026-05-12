@@ -18,6 +18,7 @@ function doGet(e) {
     else if (action === 'addTransaksi')  result = addTransaksi(e.parameter);
     else if (action === 'getTransaksi')  result = getTransaksi(parseInt(e.parameter.limit) || 500);
     else if (action === 'getStok')       result = getStok();
+    else if (action === 'setup')         result = setupSheets();
     else                                 result = { error: 'Unknown action: ' + action };
   } catch (err) {
     result = { error: err.message };
@@ -42,9 +43,9 @@ function doGet(e) {
 // Kolom A = ID BARANG, Kolom B = NAMA BARANG
 // =============================================
 function getItems() {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_PERSIAPAN);
-  if (!sheet) return { error: 'Sheet "persiapan" tidak ditemukan' };
+  const ss  = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_PERSIAPAN);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_PERSIAPAN); }
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
@@ -61,9 +62,9 @@ function getItems() {
 //        KETERANGAN | QTY | IN | OUT | LIVE STOK
 // =============================================
 function addTransaksi(params) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_PENCATATAN);
-  if (!sheet) return { error: 'Sheet "pencatatan" tidak ditemukan' };
+  const ss  = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_PENCATATAN);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_PENCATATAN); }
 
   const jenis      = (params.jenis     || '').toUpperCase();
   const qty        = parseFloat(params.qty) || 0;
@@ -98,7 +99,7 @@ function addTransaksi(params) {
   const newLiveStok = liveStok + inQty - outQty;
 
   // Nomor urut = jumlah baris data yang sudah ada + 1
-  const dataRows = Math.max(0, lastRow - 1); // kurangi baris header
+  const dataRows = Math.max(0, lastRow - 1);
   const no = dataRows + 1;
 
   sheet.appendRow([
@@ -120,9 +121,9 @@ function addTransaksi(params) {
 // GET: Ambil N transaksi terakhir
 // =============================================
 function getTransaksi(limit) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_PENCATATAN);
-  if (!sheet) return { error: 'Sheet "pencatatan" tidak ditemukan' };
+  const ss  = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_PENCATATAN);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_PENCATATAN); }
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
@@ -148,15 +149,15 @@ function getTransaksi(limit) {
 // GET: Live stok terbaru per ID BARANG
 // =============================================
 function getStok() {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_PENCATATAN);
-  if (!sheet) return [];
+  const ss  = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_PENCATATAN);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_PENCATATAN); }
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
 
-  const values   = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
-  const stokMap  = {};
+  const values  = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
+  const stokMap = {};
 
   values.forEach(r => {
     const id = String(r[3]).trim();
@@ -167,15 +168,16 @@ function getStok() {
 }
 
 // =============================================
-// HELPER: Setup header sheet (jalankan sekali)
+// HELPER: Setup header sheet — otomatis dipanggil
+// jika sheet belum ada. Aman dipanggil berkali-kali.
 // =============================================
 function setupSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   // Sheet persiapan
   let sp = ss.getSheetByName(SHEET_PERSIAPAN);
-  if (!sp) sp = ss.insertSheet(SHEET_PERSIAPAN);
-  if (sp.getLastRow() < 1) {
+  if (!sp) {
+    sp = ss.insertSheet(SHEET_PERSIAPAN);
     sp.getRange(1, 1, 1, 2).setValues([['ID BARANG', 'NAMA BARANG']]);
     sp.getRange(1, 1, 1, 2).setFontWeight('bold');
     sp.setFrozenRows(1);
@@ -183,8 +185,8 @@ function setupSheets() {
 
   // Sheet pencatatan
   let sc = ss.getSheetByName(SHEET_PENCATATAN);
-  if (!sc) sc = ss.insertSheet(SHEET_PENCATATAN);
-  if (sc.getLastRow() < 1) {
+  if (!sc) {
+    sc = ss.insertSheet(SHEET_PENCATATAN);
     sc.getRange(1, 1, 1, 9).setValues([[
       'NO', 'JENIS', 'TANGGAL', 'ID BARANG', 'KETERANGAN', 'QTY', 'IN', 'OUT', 'LIVE STOK'
     ]]);
@@ -192,5 +194,5 @@ function setupSheets() {
     sc.setFrozenRows(1);
   }
 
-  return 'Setup selesai!';
+  return { success: true, message: 'Sheet siap digunakan' };
 }
